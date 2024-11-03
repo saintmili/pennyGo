@@ -1,10 +1,12 @@
 package penny
 
-import "time"
+import (
+	"database/sql"
+	"time"
+)
 
 type Penny struct {
-	Incomes  []*Income
-	Expenses []*Expense
+	db *postgresStorage
 }
 
 type Income struct {
@@ -16,22 +18,43 @@ type Income struct {
 
 type Expense = Income
 
-func (p *Penny) Init() *Penny {
-	return &Penny{}
+func New(database *sql.DB) (*Penny, error) {
+	postgresDB := &postgresStorage{
+		db: database,
+	}
+	err := postgresDB.init()
+	return &Penny{
+		db: postgresDB,
+	}, err
 }
 
-func (p *Penny) AddIncome(amount float64, title string) {
-	p.Incomes = append(p.Incomes, &Income{
-		Title:     title,
-		Amount:    amount,
-		CreatedAt: time.Now(),
-	})
+func (p *Penny) AddIncome(amount float64, title string) (*Income, error) {
+	income := &Income{
+		Title:  title,
+		Amount: amount,
+	}
+	createdIncome, err := p.db.createIncome(income)
+	return createdIncome, err
 }
 
-func (p *Penny) AddExpense(amount float64, title string) {
-	p.Expenses = append(p.Expenses, &Expense{
-		Title:     title,
-		Amount:    amount,
-		CreatedAt: time.Now(),
-	})
+func (p *Penny) RemoveIncomeByID(id int) (*Income, error) {
+	deletedIncome, err := p.db.deleteIncomeByID(id)
+	return deletedIncome, err
+
+}
+
+// func (p *Penny) AddExpense(amount float64, title string) {
+// 	p.Expenses = append(p.Expenses, &Expense{
+// 		Title:     title,
+// 		Amount:    amount,
+// 		CreatedAt: time.Now(),
+// 	})
+// }
+
+func (p *Penny) GetIncomes() ([]*Income, error) {
+	incomes, err := p.db.getAllIncomes()
+	if err != nil {
+		return nil, err
+	}
+	return incomes, nil
 }
