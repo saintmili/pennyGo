@@ -145,3 +145,37 @@ func scanIntoExpenses(rows *sql.Rows) (*Expense, error) {
 	)
 	return expense, err
 }
+
+func (ps *postgresStorage) getAllTypes() ([]*AllType, error) {
+	query := `SELECT id, title, amount, user_id, 'income' AS type, created_at FROM penny_incomes
+        UNION ALL
+        SELECT id, title, amount, user_id, 'expense' AS type, created_at FROM penny_expenses
+        ORDER BY created_at DESC
+    `
+	rows, err := ps.db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	all := []*AllType{}
+	for rows.Next() {
+		record, err := scanIntoAllTypes(rows)
+		if err != nil {
+			return nil, err
+		}
+		all = append(all, record)
+	}
+	return all, nil
+
+}
+func scanIntoAllTypes(rows *sql.Rows) (*AllType, error) {
+	record := &AllType{}
+	err := rows.Scan(
+		&record.ID,
+		&record.Title,
+		&record.Amount,
+		&record.UserID,
+		&record.Type,
+		&record.CreatedAt,
+	)
+	return record, err
+}

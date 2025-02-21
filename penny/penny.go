@@ -19,6 +19,11 @@ type Income struct {
 
 type Expense = Income
 
+type AllType struct {
+	Income
+	Type string
+}
+
 func New(database *sql.DB) (*Penny, error) {
 	postgresDB := &postgresStorage{
 		db: database,
@@ -71,4 +76,12 @@ func (p *Penny) GetExpenses(userID int) ([]*Expense, error) {
 		return nil, err
 	}
 	return expenses, nil
+}
+func (p *Penny) GetAllTypes() ([]*AllType, error) {
+	records, err := p.db.getAllTypes()
+	if err != nil {
+		return nil, err
+	}
+	return records, nil
+
 }
