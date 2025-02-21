@@ -9,19 +9,13 @@ type Penny struct {
 	db *postgresStorage
 }
 
-type Income struct {
+type Record struct {
 	ID        int
 	Title     string
 	Amount    float64
 	UserID    int
+	Type      string
 	CreatedAt time.Time
-}
-
-type Expense = Income
-
-type AllType struct {
-	Income
-	Type string
 }
 
 func New(database *sql.DB) (*Penny, error) {
@@ -34,21 +28,21 @@ func New(database *sql.DB) (*Penny, error) {
 	}, err
 }
 
-func (p *Penny) AddIncome(amount float64, title string, userID int) (*Income, error) {
-	income := &Income{
+func (p *Penny) AddRecord(amount float64, title string, userID int, recordType string) (*Record, error) {
+	income := &Record{
 		Title:  title,
 		Amount: amount,
 		UserID: userID,
+		Type:   recordType,
 	}
-	createdIncome, err := p.db.createIncome(income)
+	createdIncome, err := p.db.createRecord(income)
 	return createdIncome, err
 }
-func (p *Penny) RemoveIncomeByID(id, userID int) (*Income, error) {
-	deletedIncome, err := p.db.deleteIncomeByID(id, userID)
+func (p *Penny) RemoveRecordByID(id, userID int) (*Record, error) {
+	deletedIncome, err := p.db.deleteRecordByID(id, userID)
 	return deletedIncome, err
-
 }
-func (p *Penny) GetIncomes(userID int) ([]*Income, error) {
+func (p *Penny) GetIncomes(userID int) ([]*Record, error) {
 	incomes, err := p.db.getAllIncomes(userID)
 	if err != nil {
 		return nil, err
@@ -56,32 +50,24 @@ func (p *Penny) GetIncomes(userID int) ([]*Income, error) {
 	return incomes, nil
 }
 
-func (p *Penny) AddExpense(amount float64, title string, userID int) (*Expense, error) {
-	expense := &Expense{
-		Title:  title,
-		Amount: amount,
-		UserID: userID,
-	}
-	createdExpense, err := p.db.createExpense(expense)
-	return createdExpense, err
-}
-func (p *Penny) RemoveExpenseByID(id, userID int) (*Expense, error) {
-	deletedExpense, err := p.db.deleteExpenseByID(id, userID)
-	return deletedExpense, err
-
-}
-func (p *Penny) GetExpenses(userID int) ([]*Expense, error) {
+func (p *Penny) GetExpenses(userID int) ([]*Record, error) {
 	expenses, err := p.db.getAllExpenses(userID)
 	if err != nil {
 		return nil, err
 	}
 	return expenses, nil
 }
-func (p *Penny) GetAllTypes() ([]*AllType, error) {
-	records, err := p.db.getAllTypes()
+func (p *Penny) GetAllRecords() ([]*Record, error) {
+	records, err := p.db.getAllRecords()
 	if err != nil {
 		return nil, err
 	}
 	return records, nil
-
+}
+func (p *Penny) UpdateRecordByID(record *Record) (*Record, error) {
+	updatedRecord, err := p.db.updateRecordByID(record)
+	if err != nil {
+		return nil, err
+	}
+	return updatedRecord, err
 }
